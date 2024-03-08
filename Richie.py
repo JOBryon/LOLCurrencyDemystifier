@@ -1,12 +1,6 @@
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    mywindow = MainWindow()
-    mywindow.show()
-    app.exec_()
-    ###
 import pytesseract
 import win32gui
-from PIL import ImageGrab
+from PIL import ImageGrab, ImageOps
 
 
 # Replace the string with your tesseract path
@@ -16,6 +10,19 @@ league_window_name = "League of Legends"
 
 def get_RP():
     read_number(league_window_offset(932, 18, 995, 42))
+    # read_number(get_window_rect(league_window_name))
+
+
+def get_default_shop_prices():
+    w = 32
+    l = 17
+
+    read_number(league_window_offset(725, 521, 725 + 6, 521 + 8))
+    # read_number(league_window_offset(722, 316, 722 + w, 316 + l))
+    # read_number(league_window_offset(922, 316, 922 + w, 316 + l))
+    # read_number(league_window_offset(722, 516, 722 + w, 516 + l))
+    # read_number(league_window_offset(922, 516, 922 + w, 516 + l))
+
 
 def league_window_offset(x1, y1, x2, y2) :
     x,y, _, _ = get_window_rect(league_window_name)
@@ -24,9 +31,10 @@ def league_window_offset(x1, y1, x2, y2) :
 
 def read_number(rect):
     screenshot = ImageGrab.grab(bbox=rect, all_screens=True)
-
-    # screenshot.show()
-
+    screenshot = ImageOps.invert(screenshot)
+    screenshot = ImageOps.grayscale(screenshot)
+    screenshot.show()
+    # screenshot.save("screenshot.png")
     text = pytesseract.image_to_string(screenshot)
     print("Extracted Number:", text)
 
@@ -60,4 +68,5 @@ def get_open_windows():
     win32gui.EnumWindows(enum_windows_callback, windows)
     return windows
 
-get_RP()
+# get_RP()
+get_default_shop_prices()

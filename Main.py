@@ -18,13 +18,13 @@ def get_window_rect(window_title):
             return None   
 def get_open_windows():
     windows = []
-def enum_windows_callback(hwnd, window_list):
-    if win32gui.IsWindowVisible(hwnd):
-        window_text = win32gui.GetWindowText(hwnd)
-        if window_text:
-            window_list.append((hwnd, window_text))
-    win32gui.EnumWindows(enum_windows_callback, windows)
-    return windows
+    def enum_windows_callback(hwnd, window_list):
+        if win32gui.IsWindowVisible(hwnd):
+            window_text = win32gui.GetWindowText(hwnd)
+            if window_text:
+                window_list.append((hwnd, window_text))
+        win32gui.EnumWindows(enum_windows_callback, windows)
+        return windows
 
 def alignWindowToLoL(self):
     x,y,z,zz = get_window_rect(league_window_name)
