@@ -58,7 +58,7 @@ def findCheapestPurchase(target, currency):
             # possible and ignore this distance unless it is the smallest amount of currency you can buy
             if (row == currency[0]):
                 distance = abs(distance)
-            if(distance >= 0):
+            if(distance >= -1379):
                 if (distance < lastDistance[0]):
                     lastDistance[0] = distance
                     lastDistance[1] = row
@@ -74,8 +74,4 @@ def findCheapestPurchase(target, currency):
     total[0][1] = round(total[0][1], 2)
     return total
     
-print(findCheapestPurchase(4600, US_Dollar.league_prices))
-
-
-
-
+print(findCheapestPurchase(3980, US_Dollar.league_prices))
