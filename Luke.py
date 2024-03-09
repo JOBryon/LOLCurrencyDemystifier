@@ -33,9 +33,10 @@ if __name__ == '__main__':
     label = QtWidgets.QLabel("0", mywindow)
     label.setStyleSheet(
         "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 5px; font-size: 14px; font-weight: bold;")
-    
+    label1 = QtWidgets.QLabel("0", mywindow)
+
+
     layout.addWidget(label)
-    
-    mywindow.setLayout(layout)
+    layout.addWidget()
     mywindow.show()
     app.exec_()

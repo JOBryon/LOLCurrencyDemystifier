@@ -18,10 +18,10 @@ def get_default_shop_prices():
     l = 17
 
     read_number(league_window_offset(725, 521, 725 + w, 521 + l))
-    # read_number(league_window_offset(722, 316, 722 + w, 316 + l))
-    # read_number(league_window_offset(922, 316, 922 + w, 316 + l))
-    # read_number(league_window_offset(722, 516, 722 + w, 516 + l))
-    # read_number(league_window_offset(922, 516, 922 + w, 516 + l))
+    read_number(league_window_offset(722, 316, 722 + w, 316 + l))
+    read_number(league_window_offset(922, 316, 922 + w, 316 + l))
+    read_number(league_window_offset(722, 516, 722 + w, 516 + l))
+    read_number(league_window_offset(922, 516, 922 + w, 516 + l))
 
 
 def league_window_offset(x1, y1, x2, y2) :
@@ -69,4 +69,4 @@ def get_open_windows():
     return windows
 
 #get_RP()
-get_default_shop_prices()
+#get_default_shop_prices()
