@@ -123,9 +123,9 @@ if __name__ == '__main__':
     
         holder_widget = QtWidgets.QLabel(convert_RP_to(int(i),usd), mywindow)
         layout.addWidget(holder_widget)
-        holder_widget.move(poss[y][0], poss[y][1])
+        holder_widget.move(poss[y][0] - 30, poss[y][1] - 5)
         holder_widget.setStyleSheet(
-        "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold;")
+        "color: red; background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 12px; font-weight: bold;")
         y += 1
 
     
