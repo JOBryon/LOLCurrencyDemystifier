@@ -17,7 +17,7 @@ def get_default_shop_prices():
     w = 32
     l = 17
 
-    read_number(league_window_offset(725, 521, 725 + 6, 521 + 8))
+    read_number(league_window_offset(725, 521, 725 + w, 521 + l))
     # read_number(league_window_offset(722, 316, 722 + w, 316 + l))
     # read_number(league_window_offset(922, 316, 922 + w, 316 + l))
     # read_number(league_window_offset(722, 516, 722 + w, 516 + l))
@@ -68,5 +68,5 @@ def get_open_windows():
     win32gui.EnumWindows(enum_windows_callback, windows)
     return windows
 
-# get_RP()
+#get_RP()
 get_default_shop_prices()
