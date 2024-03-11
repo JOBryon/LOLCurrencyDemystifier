@@ -94,6 +94,16 @@ def covert_RP_from(inp, cur):
     inp = round(inp*cur*100, 2)
     return str(inp)
 
+# Wallet is current RP and price is price for the item and cur is currency list of RP prices
+def RP_to_purchase(wallet, price, cur):
+    if price <= wallet:
+        return str(convert_RP_to(wallet, 1.15))
+    dif = price - wallet
+    for i in cur:
+        if dif < i[0]:
+            return '$: ' + str(i[1])
+    return '-1'
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -115,6 +125,7 @@ class MainWindow(QMainWindow):
         QtWidgets.qApp.quit()
 
 def load_window(mywindow, layout, shop_prices):
+    rp = get_RP()
     label = QtWidgets.QLabel(convert_RP_to(int(rp),usd), mywindow)
     label.setStyleSheet(
         "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 5px; font-size: 14px; font-weight: bold;")
@@ -123,7 +134,7 @@ def load_window(mywindow, layout, shop_prices):
     #label1 = QtWidgets.QLabel("0", mywindow)
     y = 0
     for i in shop_prices:
-        holder_widget = QtWidgets.QLabel(convert_RP_to(int(i),usd), mywindow)
+        holder_widget = QtWidgets.QLabel(RP_to_purchase(int(rp),int(i),usd_RP), mywindow)
         layout.addWidget(holder_widget)
         holder_widget.move(poss[y][0], poss[y][1])
         holder_widget.setStyleSheet(
@@ -135,7 +146,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     layout = QtWidgets.QVBoxLayout()
     mywindow = MainWindow()
-    rp = get_RP()
+    
     shop_prices = get_default_shop_prices()
 
     load_window(mywindow, layout, shop_prices)
