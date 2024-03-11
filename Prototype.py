@@ -36,7 +36,7 @@ def get_default_shop_prices():
     for i in holder:
         try:
             int(i)
-        except text_or_error:
+        except:
             i = 0
 
     return holder
