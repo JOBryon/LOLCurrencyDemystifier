@@ -4,6 +4,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMainWindow, QApplication
 import win32gui
 import sys
+from pynput.mouse import Listener
 from PIL import ImageGrab, ImageOps
 
 
@@ -141,6 +142,24 @@ class MainWindow(QMainWindow):
     def mousePressEvent(self, event):
         print('click!')
         QtWidgets.qApp.quit()
+
+from pynput.mouse import Listener
+
+
+def on_move(x, y):
+    print(x, y)
+
+
+def on_click(x, y, button, pressed):
+    print(x, y, button, pressed)
+
+
+def on_scroll(x, y, dx, dy):
+    print(x, y, dx, dy)
+
+
+with Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll) as listener:
+    listener.join()
 
 def load_window(mywindow, layout, shop_prices):
     rp = get_RP()
