@@ -12,7 +12,7 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 
 league_window_name = "League of Legends"
 
-poss = [[722, 316, 722, 316],[922, 316, 922, 316],[722, 516, 722, 516],[922, 516, 922, 516]]
+poss = []
 
 # This list was written with the assumption that no single item will cost more than 4500 RP.    
 # First RP then price in USD with no tax.
@@ -29,10 +29,18 @@ def get_default_shop_prices():
     l = 17
     holder = []
     #read_number(league_window_offset(725, 521, 725 + w, 521 + l))
-    holder.append(read_number(league_window_offset(722, 316, 722 + w, 316 + l)))
-    holder.append(read_number(league_window_offset(922, 316, 922 + w, 316 + l)))
-    holder.append(read_number(league_window_offset(722, 516, 722 + w, 516 + l)))
-    holder.append(read_number(league_window_offset(922, 516, 922 + w, 516 + l)))
+    #holder.append(read_number(league_window_offset(722, 316, 722 + w, 316 + l)))
+    #holder.append(read_number(league_window_offset(922, 316, 922 + w, 316 + l)))
+    #holder.append(read_number(league_window_offset(722, 516, 722 + w, 516 + l)))
+    #holder.append(read_number(league_window_offset(922, 516, 922 + w, 516 + l)))
+
+    for i in range(4):
+        poss.append([323 + (200 * i), 316, 323 + w + (200 * i), 316 + l])
+        holder.append(read_number(league_window_offset(323 + (200 * i), 316, 323 + w + (200 * i), 316 + l)))
+
+        poss.append([323 + (200 * i), 516, 323 + w + (200 * i), 516 + l])
+        holder.append(read_number(league_window_offset(323 + (200 * i), 516, 323 + w + (200 * i), 516 + l)))
+
     for i in holder:
         try:
             int(i)
@@ -97,11 +105,21 @@ def covert_RP_from(inp, cur):
 # Wallet is current RP and price is price for the item and cur is currency list of RP prices
 def RP_to_purchase(wallet, price, cur):
     if price <= wallet:
-        return str(convert_RP_to(wallet, 1.15))
+        holder = str(convert_RP_to(price, 1.15))
+        if holder[-2] != '.':
+            return '$: ' + holder
+        else:
+            return '$: ' + holder + '0'
+
     dif = price - wallet
     for i in cur:
         if dif < i[0]:
-            return '$: ' + str(i[1])
+            holder = str(i[1])
+            if holder[-2] != '.':
+                return '$: ' + holder
+            else:
+                return '$: ' + holder + '0'
+
     return '-1'
 
 

@@ -70,3 +70,4 @@ def get_open_windows():
 
 #get_RP()
 #get_default_shop_prices()
+read_number(league_window_offset(323,316,356,333))
