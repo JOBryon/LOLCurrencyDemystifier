@@ -4,9 +4,12 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMainWindow, QApplication
 import win32gui
 import sys
+import threading
+import time
 from pynput.mouse import Listener
 from PIL import ImageGrab, ImageOps
 
+layout = None
 
 # Replace the string with your tesseract path
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -25,7 +28,7 @@ def get_RP():
     # read_number(get_window_rect(league_window_name))
 
 
-def get_default_shop_prices():
+def get_default_shop_prices(loc_offset, width):
     w = 32
     l = 17
     holder = []
@@ -35,12 +38,12 @@ def get_default_shop_prices():
     #holder.append(read_number(league_window_offset(722, 516, 722 + w, 516 + l)))
     #holder.append(read_number(league_window_offset(922, 516, 922 + w, 516 + l)))
 
-    for i in range(4):
-        poss.append([323 + (200 * i), 316, 323 + w + (200 * i), 316 + l])
-        holder.append(read_number(league_window_offset(323 + (200 * i), 316, 323 + w + (200 * i), 316 + l)))
+    for i in range(width):
+        poss.append([loc_offset + (200 * i), 316, loc_offset + w + (200 * i), 316 + l])
+        holder.append(read_number(league_window_offset(loc_offset + (200 * i), 316, loc_offset + w + (200 * i), 316 + l)))
 
-        poss.append([323 + (200 * i), 516, 323 + w + (200 * i), 516 + l])
-        holder.append(read_number(league_window_offset(323 + (200 * i), 516, 323 + w + (200 * i), 516 + l)))
+        poss.append([loc_offset + (200 * i), 516, loc_offset + w + (200 * i), 516 + l])
+        holder.append(read_number(league_window_offset(loc_offset + (200 * i), 516, loc_offset + w + (200 * i), 516 + l)))
 
     for i in holder:
         try:
@@ -108,9 +111,9 @@ def RP_to_purchase(wallet, price, cur):
     if price <= wallet:
         holder = str(convert_RP_to(price, 1.15))
         if holder[-2] != '.':
-            return '$: ' + holder
+            return holder
         else:
-            return '$: ' + holder + '0'
+            return holder + '0'
 
     dif = price - wallet
     for i in cur:
@@ -141,25 +144,69 @@ class MainWindow(QMainWindow):
 
     def mousePressEvent(self, event):
         print('click!')
-        QtWidgets.qApp.quit()
 
-from pynput.mouse import Listener
+from pynput.mouse import Listener, Button
 
+def check_collision_rect(mouseX, mouseY, x1, y1, x2, y2):
+    xx, yy, _, _ = get_window_rect(league_window_name)
+    x1 += xx
+    x2 += xx
+    y1 += yy
+    y2 += yy
 
-def on_move(x, y):
-    print(x, y)
+    return (x1 < mouseX < x2) and (y1 < mouseY < y2)
 
 
 def on_click(x, y, button, pressed):
-    print(x, y, button, pressed)
+    collided = False
+    global poss
+    if button == Button.left and not pressed:
+        if check_collision_rect(x, y, 241, 89, 241 + 53, 89 + 17):
+            poss = []
+            shop_prices = get_default_shop_prices(323, 4)
+            collided = True
+        elif check_collision_rect(x, y, 33, 89, 33 + 74, 89 + 17):
+            poss = []
+            shop_prices = get_default_shop_prices(723, 2)
+            collided = True
+
+    if collided:
+        print("CLEARING")
+
+        global layout
+        clear_layout(layout)
+
+        print(poss)
+
+        # layout = QtWidgets.QVBoxLayout()
+        # mywindow = MainWindow()
+
+        load_window(mywindow, layout, shop_prices)
+        print(layout.count())
+        # mywindow.update()
+        # mywindow.repaint()
+        # mywindow.show()
+
+
+def clear_layout(layout):
+    global poss
+    while layout.count() > 0:
+        widget = layout.itemAt(0).widget()
+        layout.removeWidget(widget)
+        widget.deleteLater()
 
 
 def on_scroll(x, y, dx, dy):
     print(x, y, dx, dy)
 
 
-with Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll) as listener:
-    listener.join()
+def start_listener():
+    with Listener(on_click=on_click, on_scroll=on_scroll) as listener:
+        listener.join()
+
+listener_thread = threading.Thread(target=start_listener)
+listener_thread.start()
+
 
 def load_window(mywindow, layout, shop_prices):
     rp = get_RP()
@@ -178,14 +225,18 @@ def load_window(mywindow, layout, shop_prices):
             "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold;")
         y += 1
 
+    mywindow.setLayout(layout)
+
+
 if __name__ == '__main__':
     usd = 1.15
     app = QApplication(sys.argv)
     layout = QtWidgets.QVBoxLayout()
     mywindow = MainWindow()
     
-    shop_prices = get_default_shop_prices()
+    shop_prices = get_default_shop_prices(723, 2)
 
+    print(poss)
     load_window(mywindow, layout, shop_prices)
     
     #layout.addWidget()
