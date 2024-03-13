@@ -27,10 +27,10 @@ featured_buy_widget = None
 
 colorblind_mode = False
 dyslexic_mode = False
-current_currency = "Czech Koruna"
-custom_conversion = True
+current_currency = "US Dollar"
+custom_conversion = False
 custom_amount = 150
-custom_symbol = "sss"
+custom_symbol = "$"
 
 currency_list = {}
 
@@ -218,6 +218,22 @@ class MainWindow(QMainWindow):
         self.settings.show()
 
 
+class NoLeagueWindow(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Error")
+        layout = QtWidgets.QVBoxLayout()
+
+        self.currency_label = QtWidgets.QLabel("Please open League of Legends before running Currency Demystifier!", self)
+        layout.addWidget(self.currency_label)
+
+        self.close = QtWidgets.QPushButton("Close", self)
+        self.close.clicked.connect(app.quit)
+        layout.addWidget(self.close)
+
+        self.setLayout(layout)
+
+
 class SettingsWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -326,9 +342,6 @@ def start_listener():
     with Listener(on_click=on_click, on_scroll=on_scroll) as listener:
         listener.join()
 
-listener_thread = threading.Thread(target=start_listener)
-listener_thread.start()
-
 
 def load_window(mywindow, layout, shop_prices):
     global main_widgets
@@ -425,8 +438,19 @@ def poll():
 
 
 if __name__ == '__main__':
-    currency_list = makeCurrencyList()
     app = QApplication(sys.argv)
+    window_exists = win32gui.FindWindow(None, league_window_name)
+
+    if not window_exists:
+        error_window = NoLeagueWindow()
+        error_window.show()
+        app.exec_()
+        exit(0)
+
+    listener_thread = threading.Thread(target=start_listener)
+    listener_thread.start()
+
+    currency_list = makeCurrencyList()
     layout = QtWidgets.QVBoxLayout()
     mywindow = MainWindow()
     poss = []
