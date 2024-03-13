@@ -1,10 +1,12 @@
 import pytesseract
 from PyQt5 import QtGui, QtCore, uic
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QMainWindow, QApplication
 import win32gui
 import sys
 import threading
+import random
 import time
 from pynput.mouse import Listener
 from PIL import ImageGrab, ImageOps
@@ -16,6 +18,13 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 
 league_window_name = "League of Legends"
 
+last_window_state = ""
+window_state = ""
+
+main_widgets = []
+skin_buy_widgets = []
+featured_buy_widget = None
+
 # This list was written with the assumption that no single item will cost more than 4500 RP.    
 # First RP then price in USD with no tax.
 usd_RP = [[575, 4.99], [1380, 10.99], [2800, 21.99], [4500, 34.99]]
@@ -26,15 +35,21 @@ def get_RP():
     # read_number(get_window_rect(league_window_name))
 
 
-def get_default_shop_prices(loc_offset, width, poss):
+def setup_widgets(loc_offset, width):
+    w = 32
+    l = 17
+
+    for i in range(width):
+        poss.append([loc_offset + (200 * i), 316, loc_offset + w + (200 * i), 316 + l])
+        poss.append([loc_offset + (200 * i), 516, loc_offset + w + (200 * i), 516 + l])
+
+
+def get_default_shop_prices(loc_offset, width):
     w = 32
     l = 17
     holder = []
     for i in range(width):
-        poss.append([loc_offset + (200 * i), 316, loc_offset + w + (200 * i), 316 + l])
         holder.append(read_number(league_window_offset(loc_offset + (200 * i), 316, loc_offset + w + (200 * i), 316 + l)))
-
-        poss.append([loc_offset + (200 * i), 516, loc_offset + w + (200 * i), 516 + l])
         holder.append(read_number(league_window_offset(loc_offset + (200 * i), 516, loc_offset + w + (200 * i), 516 + l)))
 
     for i in holder:
@@ -150,34 +165,15 @@ def check_collision_rect(mouseX, mouseY, x1, y1, x2, y2):
 
 
 def on_click(x, y, button, pressed):
-    collided = False
-    global poss
+    global window_state
     if button == Button.left and not pressed:
         if check_collision_rect(x, y, 241, 89, 241 + 53, 89 + 17):
-            poss = []
-            shop_prices = get_default_shop_prices(323, 4)
-            collided = True
+            window_state = "skins"
         elif check_collision_rect(x, y, 33, 89, 33 + 74, 89 + 17):
-            poss = []
-            shop_prices = get_default_shop_prices(723, 2)
-            collided = True
+            window_state = "featured"
+        elif check_collision_rect(x, y, 813, 6, 813 + 56, 6 + 71):
+            window_state ="featured"
 
-    if collided:
-        print("CLEARING")
-
-        global layout
-        clear_layout(layout)
-
-        print(poss)
-
-        # layout = QtWidgets.QVBoxLayout()
-        # mywindow = MainWindow()
-
-        load_window(mywindow, layout, shop_prices)
-        print(layout.count())
-        # mywindow.update()
-        # mywindow.repaint()
-        # mywindow.show()
 
 
 def clear_layout(layout):
@@ -189,8 +185,8 @@ def clear_layout(layout):
 
 
 def on_scroll(x, y, dx, dy):
-    print(x, y, dx, dy)
-
+    # print(x, y, dx, dy)
+    pass
 
 def start_listener():
     with Listener(on_click=on_click, on_scroll=on_scroll) as listener:
@@ -201,6 +197,8 @@ listener_thread.start()
 
 
 def load_window(mywindow, layout, shop_prices):
+    global main_widgets
+    print("LOADING")
     rp = get_RP()
     label = QtWidgets.QLabel(convert_RP_to(int(rp),usd), mywindow)
     label.setStyleSheet(
@@ -213,11 +211,70 @@ def load_window(mywindow, layout, shop_prices):
         holder_widget = QtWidgets.QLabel(RP_to_purchase(int(rp),int(i),usd_RP), mywindow)
         layout.addWidget(holder_widget)
         holder_widget.move(poss[y][0], poss[y][1])
+        main_widgets.append(holder_widget)
         holder_widget.setStyleSheet(
             "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold;")
         y += 1
 
     mywindow.setLayout(layout)
+    # mywindow.update()
+
+def update_labels(loc_offset, width):
+    global main_widgets
+    w = 32
+    l = 17
+    rp = get_RP()
+
+    for i in range(width):
+        if main_widgets[i].isHidden():
+            continue
+
+        if i % 2 == 0:
+            read_number(league_window_offset(loc_offset + (200 * i), 316, loc_offset + w + (200 * i), 316 + l))
+        else:
+            read_number(league_window_offset(loc_offset + (200 * i), 516, loc_offset + w + (200 * i), 516 + l))
+
+        main_widgets[i].setText(RP_to_purchase(int(rp),int(i),usd_RP))
+
+
+def poll():
+    global last_window_state
+    global main_widgets
+    #
+    # test_wd.setText(str(random.randint(1,50)))
+    #
+    # if test_wd.isHidden():
+    #     test_wd.show()
+    # else:
+    #     test_wd.hide()
+
+    if window_state != last_window_state:
+        print ("STATE CHANGE")
+        match window_state:
+            case "featured":
+                shop_prices = get_default_shop_prices(723, 2)
+                main_widgets[0].hide()
+                main_widgets[1].hide()
+                main_widgets[2].hide()
+                main_widgets[3].hide()
+                main_widgets[4].show()
+                main_widgets[5].show()
+                main_widgets[6].show()
+                main_widgets[7].show()
+
+            case "skins":
+                shop_prices = get_default_shop_prices(323, 4)
+                main_widgets[0].show()
+                main_widgets[1].show()
+                main_widgets[2].show()
+                main_widgets[3].show()
+
+        last_window_state = window_state
+        # # clear_layout(layout)
+        # load_window(mywindow, layout, shop_prices)
+        # print(layout.count())
+
+
 
 
 if __name__ == '__main__':
@@ -226,11 +283,30 @@ if __name__ == '__main__':
     layout = QtWidgets.QVBoxLayout()
     mywindow = MainWindow()
     poss = []
-    shop_prices = get_default_shop_prices(723, 2)
+    setup_widgets(323, 4)
+    shop_prices = get_default_shop_prices(323, 4)
 
     print(poss)
     load_window(mywindow, layout, shop_prices)
-    
-    #layout.addWidget()
+
+    # test_wd = QtWidgets.QLabel("ASWD", mywindow)
+    # layout.addWidget(test_wd)
+    # test_wd.move(500, 200)
+    # test_wd.setStyleSheet(
+    #     "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold;")
+
+    main_widgets[0].hide()
+    main_widgets[1].hide()
+    main_widgets[2].hide()
+    main_widgets[3].hide()
+    main_widgets[4].hide()
+    main_widgets[5].hide()
+    main_widgets[6].hide()
+    main_widgets[7].hide()
     mywindow.show()
+
+    timer = QTimer()
+    timer.timeout.connect(poll)
+    timer.start(200)
+
     app.exec_()

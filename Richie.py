@@ -2,7 +2,6 @@ import pytesseract
 import win32gui
 from PIL import ImageGrab, ImageOps
 
-
 # Replace the string with your tesseract path
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
