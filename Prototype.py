@@ -83,9 +83,11 @@ def setup_widgets(loc_offset, width):
     w = 32
     l = 17
 
+    horizontal_offset = 30
+
     for i in range(width):
-        poss.append([loc_offset + (200 * i), 316, loc_offset + w + (200 * i), 316 + l])
-        poss.append([loc_offset + (200 * i), 516, loc_offset + w + (200 * i), 516 + l])
+        poss.append([loc_offset + (200 * i) - horizontal_offset, 316, loc_offset + w + (200 * i) - horizontal_offset, 316 + l])
+        poss.append([loc_offset + (200 * i) - horizontal_offset, 516, loc_offset + w + (200 * i) - horizontal_offset, 516 + l])
 
 
 def get_default_shop_prices(loc_offset, width):
@@ -118,6 +120,10 @@ def read_number(rect):
     # screenshot.save("screenshot.png")
     text = pytesseract.image_to_string(screenshot)
     if text == '':
+        return 0
+    try:
+        int(text)
+    except:
         return 0
     return text
 
@@ -326,7 +332,6 @@ def on_click(x, y, button, pressed):
             window_state ="featured"
 
 
-
 def clear_layout(layout):
     global poss
     while layout.count() > 0:
@@ -354,11 +359,11 @@ def load_window(mywindow, layout, shop_prices):
     
     # TODO: add an if statement here that hinges on colorblind_mode and dyslexic_mode to change styling for different modes
     label.setStyleSheet(
-        "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 5px; font-size: 14px; font-weight: bold;")
+        "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 5px; font-size: 14px; font-weight: bold; min-width: 150px")
     
     
     layout.addWidget(label)
-    label.move(932, 18)
+    label.move(905, 16)
     #label1 = QtWidgets.QLabel("0", mywindow)
     y = 0
     for i in shop_prices:
@@ -366,7 +371,6 @@ def load_window(mywindow, layout, shop_prices):
         layout.addWidget(holder_widget)
         holder_widget.move(poss[y][0], poss[y][1])
         main_widgets.append(holder_widget)
-
         # TODO: add an if statement here that hinges on colorblind_mode and dyslexic_mode to change styling for different modes
         holder_widget.setStyleSheet(
             "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold;")
@@ -382,20 +386,43 @@ def load_window(mywindow, layout, shop_prices):
 
 def update_labels(loc_offset, width):
     global main_widgets
+    global userRP
     w = 32
     l = 17
-    rp = get_RP()
 
-    for i in range(width):
-        if main_widgets[i].isHidden():
-            continue
+    print("UPDATING LABELS")
+
+    if window_state == 'featured':
+        start = 4
+        end = 7
+    elif window_state == 'skins':
+        start = 0
+        end = 7
+    else:
+        start = 0
+        end = 7
+
+    for i in range(start, end + 1):
 
         if i % 2 == 0:
-            read_number(league_window_offset(loc_offset + (200 * i), 316, loc_offset + w + (200 * i), 316 + l))
+            price = read_number(league_window_offset(loc_offset + (200 * i), 316, loc_offset + w + (200 * i), 316 + l))
         else:
-            read_number(league_window_offset(loc_offset + (200 * i), 516, loc_offset + w + (200 * i), 516 + l))
+            price = read_number(league_window_offset(loc_offset + (200 * i), 516, loc_offset + w + (200 * i), 516 + l))
 
-        main_widgets[i].setText(RP_to_purchase(int(rp),int(i)))
+        styling = "background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold;"
+
+        to_purchase = RP_to_purchase(int(userRP),int(price))
+
+
+        if float(to_purchase[to_purchase.find(":") + 2:]) > 0:
+            if colorblind_mode:
+                styling += "color: #0000FF;"
+            else:
+                styling += "color: #FF0000;"
+        else:
+            styling += "color: #F0E6D2;"
+        main_widgets[i].setText(to_purchase)
+        main_widgets[i].setStyleSheet(styling)
 
 
 def state_change():
@@ -403,6 +430,7 @@ def state_change():
     match window_state:
         case "featured":
             shop_prices = get_default_shop_prices(723, 2)
+            update_labels(723, 2)
             main_widgets[0].hide()
             main_widgets[1].hide()
             main_widgets[2].hide()
@@ -414,6 +442,7 @@ def state_change():
 
         case "skins":
             shop_prices = get_default_shop_prices(323, 4)
+            update_labels(323, 4)
             main_widgets[0].show()
             main_widgets[1].show()
             main_widgets[2].show()
@@ -478,6 +507,8 @@ if __name__ == '__main__':
     poss = []
     setup_widgets(323, 4)
     shop_prices = get_default_shop_prices(323, 4)
+
+    userRP = get_RP()
 
     print(poss)
     load_window(mywindow, layout, shop_prices)
