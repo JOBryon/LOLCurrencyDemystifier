@@ -91,6 +91,7 @@ def setup_widgets(loc_offset, width):
 def get_default_shop_prices(loc_offset, width):
     w = 32
     l = 17
+    print("READING PRICES")
     holder = []
     for i in range(width):
         holder.append(read_number(league_window_offset(loc_offset + (200 * i), 316, loc_offset + w + (200 * i), 316 + l)))
@@ -397,6 +398,31 @@ def update_labels(loc_offset, width):
         main_widgets[i].setText(RP_to_purchase(int(rp),int(i)))
 
 
+def state_change():
+    print("CHANGING")
+    match window_state:
+        case "featured":
+            shop_prices = get_default_shop_prices(723, 2)
+            main_widgets[0].hide()
+            main_widgets[1].hide()
+            main_widgets[2].hide()
+            main_widgets[3].hide()
+            main_widgets[4].show()
+            main_widgets[5].show()
+            main_widgets[6].show()
+            main_widgets[7].show()
+
+        case "skins":
+            shop_prices = get_default_shop_prices(323, 4)
+            main_widgets[0].show()
+            main_widgets[1].show()
+            main_widgets[2].show()
+            main_widgets[3].show()
+            main_widgets[4].show()
+            main_widgets[5].show()
+            main_widgets[6].show()
+            main_widgets[7].show()
+
 def poll():
     global last_window_state
     global main_widgets
@@ -410,30 +436,26 @@ def poll():
 
     if window_state != last_window_state:
         print ("STATE CHANGE")
-        match window_state:
-            case "featured":
-                shop_prices = get_default_shop_prices(723, 2)
-                main_widgets[0].hide()
-                main_widgets[1].hide()
-                main_widgets[2].hide()
-                main_widgets[3].hide()
-                main_widgets[4].show()
-                main_widgets[5].show()
-                main_widgets[6].show()
-                main_widgets[7].show()
-
-            case "skins":
-                shop_prices = get_default_shop_prices(323, 4)
-                main_widgets[0].show()
-                main_widgets[1].show()
-                main_widgets[2].show()
-                main_widgets[3].show()
-
         last_window_state = window_state
+        main_widgets[0].hide()
+        main_widgets[1].hide()
+        main_widgets[2].hide()
+        main_widgets[3].hide()
+        main_widgets[4].hide()
+        main_widgets[5].hide()
+        main_widgets[6].hide()
+        main_widgets[7].hide()
+        QTimer.singleShot(1000, state_change)
         # # clear_layout(layout)
         # load_window(mywindow, layout, shop_prices)
         # print(layout.count())
 
+
+def quit_program():
+    print("QUIT")
+    mywindow.close()
+    app.quit()
+    exit(0)
 
 
 
@@ -459,6 +481,11 @@ if __name__ == '__main__':
 
     print(poss)
     load_window(mywindow, layout, shop_prices)
+
+    close_button = QtWidgets.QPushButton("Close", mywindow)
+    layout.addWidget(close_button)
+    close_button.clicked.connect(quit_program)
+    close_button.move(1200, 0)
 
     # test_wd = QtWidgets.QLabel("ASWD", mywindow)
     # layout.addWidget(test_wd)
