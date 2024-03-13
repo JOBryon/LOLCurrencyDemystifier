@@ -16,8 +16,6 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 
 league_window_name = "League of Legends"
 
-poss = []
-
 # This list was written with the assumption that no single item will cost more than 4500 RP.    
 # First RP then price in USD with no tax.
 usd_RP = [[575, 4.99], [1380, 10.99], [2800, 21.99], [4500, 34.99]]
@@ -28,16 +26,10 @@ def get_RP():
     # read_number(get_window_rect(league_window_name))
 
 
-def get_default_shop_prices(loc_offset, width):
+def get_default_shop_prices(loc_offset, width, poss):
     w = 32
     l = 17
     holder = []
-    #read_number(league_window_offset(725, 521, 725 + w, 521 + l))
-    #holder.append(read_number(league_window_offset(722, 316, 722 + w, 316 + l)))
-    #holder.append(read_number(league_window_offset(922, 316, 922 + w, 316 + l)))
-    #holder.append(read_number(league_window_offset(722, 516, 722 + w, 516 + l)))
-    #holder.append(read_number(league_window_offset(922, 516, 922 + w, 516 + l)))
-
     for i in range(width):
         poss.append([loc_offset + (200 * i), 316, loc_offset + w + (200 * i), 316 + l])
         holder.append(read_number(league_window_offset(loc_offset + (200 * i), 316, loc_offset + w + (200 * i), 316 + l)))
@@ -233,7 +225,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     layout = QtWidgets.QVBoxLayout()
     mywindow = MainWindow()
-    
+    poss = []
     shop_prices = get_default_shop_prices(723, 2)
 
     print(poss)
