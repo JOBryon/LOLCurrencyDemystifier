@@ -25,10 +25,54 @@ main_widgets = []
 skin_buy_widgets = []
 featured_buy_widget = None
 
+colorblind_mode = False
+dyslexic_mode = False
+current_currency = "Czech Koruna"
+custom_conversion = True
+custom_amount = 150
+custom_symbol = "sss"
+
+currency_list = {}
+
 # This list was written with the assumption that no single item will cost more than 4500 RP.    
 # First RP then price in USD with no tax.
 usd_RP = [[575, 4.99], [1380, 10.99], [2800, 21.99], [4500, 34.99]]
 
+# Currency object that holds the name of each currency, the symbol representation and the prices of rp in that currency listed [RP, price] in a list of arrays
+class Currency:
+    def __init__(self, name, symbol, lol_prices) -> None:
+        self.name = name
+        self.symbol = symbol
+        self.league_prices = lol_prices
+    
+    def get_conversion_rate(self):
+        return self.league_prices[0][0] // self.league_prices[0][1]
+
+def makeCurrencyList():
+    currency_list = {}
+    # United States Dollar
+    currency_list["US Dollar"] = Currency("US Dollar","$",[[575, 4.99],[1380,10.99],[2800,21.99],[4500,34.99],[6500,49.99],[13500,99.99]])
+    # Canadian Dollar
+    currency_list["Canadian Dollar"] = Currency("Canadian Dollar","$",[[475, 5.49],[1380,14.99],[2800,29.99],[4800,49.99],[7250,74.99],[13000,129.99]])
+    # Euro
+    currency_list["Euro"] = Currency("Euro", "€", [[575,4.99],[1380,10.99],[2800,21.99],[4500,34.99],[6500,49.99],[13500,99.99]])
+    # Great British Pound
+    currency_list["Great British Pound"] = Currency("Great British Pound","£",[[575,4.49],[1450,10.99],[2850,20.99],[5000,34.99],[7250,49.99],[15000,99.99]])
+    # Polish Ztoty
+    currency_list["Polish złoty"] = Currency("Polish złoty", "zł",[[350,13.99],[750,27.99],[1380,47.99],[2950,99.99],[5250,174.99],[10750,349.99]])
+    # Czech Koruna
+    currency_list["Czech Koruna"] = Currency("Czech Koruna","Kč",[[325,79],[650,149],[1380,299],[2800,599],[6250,1290],[12500,2490]])
+    # Romanian New Leu
+    currency_list["Romanian New Leu"] = Currency("Romanian New Leu", "RON",[[250,9.99],[650,24.99],[1380,49.99],[2800,99.99],[5750,199.99],[12500,429.99]])
+    # Hungarian Forint
+    currency_list["Hungarian Forint"] = Currency("Hungarian Forint", "Ft", [[250,799],[650,1990],[1400,3990],[2850,7990],[5500,14990],[11500,29990]])
+    # Brazil Real
+    currency_list["Brazilian Real"] = Currency("Brazilian Real", "R$", [[400,10.90],[1275,34.90],[2575,69.90],[4575,124.90],[6425,174.90],[12850,349.90]])
+    # Australian Dollar
+    currency_list["Australian Dollar"] = Currency("Australian Dollar", "$", [[475,5.99],[1425,16.99],[2800,30.99],[4600,49.99],[7000,74.99],[12500,129.99]])
+    # New Zealand Dollar 
+    currency_list["New Zealand Dollar"] = Currency("New Zealand Dollar", "$", [[520,6.99],[1380,16.99],[2850,34.99],[4200,49.99],[6500,74.99],[12750,139.99]])
+    return currency_list
 
 def get_RP():
     return read_number(league_window_offset(932, 18, 995, 42))
@@ -106,17 +150,32 @@ def get_open_windows():
     win32gui.EnumWindows(enum_windows_callback, windows)
     return windows
 
-def convert_RP_to(inp, cur):
-    inp = round(inp/cur/100, 2)
-    return "$: " + str(inp)
+def convert_RP_to(inp):
+    if not custom_conversion:
+        rate = currency_list[current_currency].get_conversion_rate() / 100
+        symbol = currency_list[current_currency].symbol
+    else:
+        rate = custom_amount / 100
+        symbol = custom_symbol
+
+    inp = round(inp/rate/100, 2)
+    return symbol + ": " + str(inp)
+
 def covert_RP_from(inp, cur):
     inp = round(inp*cur*100, 2)
     return str(inp)
 
 # Wallet is current RP and price is price for the item and cur is currency list of RP prices
-def RP_to_purchase(wallet, price, cur):
+def RP_to_purchase(wallet, price):
+    if not custom_conversion:
+        symbol = currency_list[current_currency].symbol
+        cur = currency_list[current_currency].league_prices
+    else:
+        symbol = custom_symbol
+        cur = [[custom_amount, 1]]
+
     if price <= wallet:
-        holder = str(convert_RP_to(price, 1.15))
+        holder = str(convert_RP_to(price))
         if holder[-2] != '.':
             return holder
         else:
@@ -127,9 +186,9 @@ def RP_to_purchase(wallet, price, cur):
         if dif < i[0]:
             holder = str(i[1])
             if holder[-2] != '.':
-                return '$: ' + holder
+                return symbol + ': ' + holder
             else:
-                return '$: ' + holder + '0'
+                return symbol + ': ' + holder + '0'
 
     return '-1'
 
@@ -144,6 +203,9 @@ class MainWindow(QMainWindow):
             QtCore.Qt.X11BypassWindowManagerHint
         )
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        
+        # stores settings window
+        self.settings = SettingsWindow()
 
         # sets the window to cover RP
         rect = get_window_rect(league_window_name)
@@ -151,6 +213,78 @@ class MainWindow(QMainWindow):
 
     def mousePressEvent(self, event):
         print('click!')
+    
+    def openSettings(self):
+        self.settings.show()
+
+
+class SettingsWindow(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Currency Demystifyer Settings")
+        # self.setWindowFlags(
+        #     QtCore.Qt.WindowStaysOnTopHint |
+        #     QtCore.Qt.FramelessWindowHint |
+        #     QtCore.Qt.X11BypassWindowManagerHint
+        # )
+        # self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        # rect = get_window_rect(league_window_name)
+        # self.setGeometry(rect[0], rect[1], 300, 400)
+
+        layout = QtWidgets.QVBoxLayout()
+        
+        self.colorblind = QtWidgets.QCheckBox("Colorblind mode", self)
+        layout.addWidget(self.colorblind)
+
+        self.dyslexic = QtWidgets.QCheckBox("Use OpenDsylexic font", self)
+        layout.addWidget(self.dyslexic)
+
+        self.currency_label = QtWidgets.QLabel("Currency: ", self)
+        layout.addWidget(self.currency_label)
+        self.currency = QtWidgets.QComboBox(self)
+        self.currency_list = makeCurrencyList()
+        i = 0
+        for curr in self.currency_list.values():
+            self.currency.insertItem(i, curr.name)
+            i += 1
+        layout.addWidget(self.currency)
+
+        self.custom_currency = QtWidgets.QCheckBox("Use custom currency conversion", self)
+        layout.addWidget(self.custom_currency)
+        self.custom_conversion = QtWidgets.QLineEdit("150", self)
+        layout.addWidget(self.custom_conversion)
+        self.custom_conversion_label = QtWidgets.QLabel("Riot Points per", self)
+        layout.addWidget(self.custom_conversion_label)
+        self.custom_symbol = QtWidgets.QLineEdit("$", self)
+        layout.addWidget(self.custom_symbol)
+
+        self.save = QtWidgets.QPushButton("Save", self)
+        self.save.clicked.connect(self.saveValues)
+        layout.addWidget(self.save)
+
+        self.setLayout(layout)
+    
+    def saveValues(self):
+        global colorblind_mode
+        global dyslexic_mode
+        global current_currency
+        global custom_conversion
+        global custom_amount
+        global custom_symbol
+
+        colorblind_mode = self.colorblind.isChecked()
+        dyslexic_mode = self.dyslexic.isChecked()
+        current_currency = self.currency.currentText()
+        custom_conversion = self.custom_currency.isChecked()
+        custom_amount = int(self.custom_conversion.text())
+        custom_symbol = self.custom_symbol.text()
+
+        print(current_currency)
+        print(custom_conversion)
+        print(custom_amount)
+        print(custom_symbol)
+        self.hide()
+
 
 from pynput.mouse import Listener, Button
 
@@ -199,22 +333,35 @@ listener_thread.start()
 def load_window(mywindow, layout, shop_prices):
     global main_widgets
     print("LOADING")
+    currency_list = makeCurrencyList()
+
     rp = get_RP()
-    label = QtWidgets.QLabel(convert_RP_to(int(rp),usd), mywindow)
+    label = QtWidgets.QLabel(convert_RP_to(int(rp)), mywindow)
+    
+    # TODO: add an if statement here that hinges on colorblind_mode and dyslexic_mode to change styling for different modes
     label.setStyleSheet(
         "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 5px; font-size: 14px; font-weight: bold;")
+    
+    
     layout.addWidget(label)
     label.move(932, 18)
     #label1 = QtWidgets.QLabel("0", mywindow)
     y = 0
     for i in shop_prices:
-        holder_widget = QtWidgets.QLabel(RP_to_purchase(int(rp),int(i),usd_RP), mywindow)
+        holder_widget = QtWidgets.QLabel(RP_to_purchase(int(rp),int(i)), mywindow)
         layout.addWidget(holder_widget)
         holder_widget.move(poss[y][0], poss[y][1])
         main_widgets.append(holder_widget)
+
+        # TODO: add an if statement here that hinges on colorblind_mode and dyslexic_mode to change styling for different modes
         holder_widget.setStyleSheet(
             "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold;")
+        
         y += 1
+
+    settings_button = QtWidgets.QPushButton("Settings", mywindow)
+    settings_button.clicked.connect(mywindow.openSettings)
+    layout.addWidget(settings_button)
 
     mywindow.setLayout(layout)
     # mywindow.update()
@@ -234,7 +381,7 @@ def update_labels(loc_offset, width):
         else:
             read_number(league_window_offset(loc_offset + (200 * i), 516, loc_offset + w + (200 * i), 516 + l))
 
-        main_widgets[i].setText(RP_to_purchase(int(rp),int(i),usd_RP))
+        main_widgets[i].setText(RP_to_purchase(int(rp),int(i)))
 
 
 def poll():
@@ -278,7 +425,7 @@ def poll():
 
 
 if __name__ == '__main__':
-    usd = 1.15
+    currency_list = makeCurrencyList()
     app = QApplication(sys.argv)
     layout = QtWidgets.QVBoxLayout()
     mywindow = MainWindow()
