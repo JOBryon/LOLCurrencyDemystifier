@@ -20,9 +20,10 @@ league_window_name = "League of Legends"
 
 last_window_state = ""
 window_state = ""
+window_state_save = ""
 
 main_widgets = []
-skin_buy_widgets = []
+skin_buy_widget = None
 featured_buy_widget = None
 
 colorblind_mode = False
@@ -118,7 +119,7 @@ def read_number(rect):
     screenshot = ImageOps.grayscale(screenshot)
     # screenshot.show()
     # screenshot.save("screenshot.png")
-    text = pytesseract.image_to_string(screenshot)
+    text = pytesseract.image_to_string(screenshot, config="--psm 7 -c tessedit_char_whitelist=0123456789.")
     if text == '':
         return 0
     try:
@@ -323,14 +324,108 @@ def check_collision_rect(mouseX, mouseY, x1, y1, x2, y2):
 
 def on_click(x, y, button, pressed):
     global window_state
+    global window_state_save
+
     if button == Button.left and not pressed:
         if check_collision_rect(x, y, 241, 89, 241 + 53, 89 + 17):
             window_state = "skins"
         elif check_collision_rect(x, y, 33, 89, 33 + 74, 89 + 17):
             window_state = "featured"
         elif check_collision_rect(x, y, 813, 6, 813 + 56, 6 + 71):
-            window_state ="featured"
+            window_state = "featured"
+        elif window_state == "buy":
+            if window_state_save == "featured" and check_collision_rect(x, y, 924, 193, 924 + 44, 193 + 44):
+                featured_buy_widget.hide()
+                main_widgets[0].hide()
+                main_widgets[1].hide()
+                main_widgets[2].hide()
+                main_widgets[3].hide()
+                main_widgets[4].show()
+                main_widgets[5].show()
+                main_widgets[6].show()
+                main_widgets[7].show()
+                window_state = window_state_save
+            if window_state_save == "skins" and check_collision_rect(x, y, 871, 125, 871 + 24, 125 + 24):
+                skin_buy_widget.hide()
+                main_widgets[0].show()
+                main_widgets[1].show()
+                main_widgets[2].show()
+                main_widgets[3].show()
+                main_widgets[4].show()
+                main_widgets[5].show()
+                main_widgets[6].show()
+                main_widgets[7].show()
+                window_state = window_state_save
+        elif buy_button_collision(x, y):
+            print("BUY BUTTON COLLIDE")
+            skin_buy_widget.hide()
+            featured_buy_widget.hide()
 
+
+            #         styling = "background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold;"
+            #
+            #         to_purchase = RP_to_purchase(int(userRP),int(price))
+            #
+            #
+            #         if float(to_purchase[to_purchase.find(":") + 2:]) > 0:
+            #             if colorblind_mode:
+            #                 styling += "color: #0000FF;"
+            #             else:
+            #                 styling += "color: #FF0000;"
+            #         else:
+            #             styling += "color: #F0E6D2;"
+            #         main_widgets[i].setText(to_purchase)
+            #         main_widgets[i].setStyleSheet(styling)
+
+            styling = "background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold; width: 140px; height: 41px;"
+
+            if window_state == "featured":
+                price = read_number(league_window_offset(372, 477, 372 + 41, 477 + 17))
+                to_purchase = RP_to_purchase(int(userRP), int(price))
+                if float(to_purchase[to_purchase.find(":") + 2:]) > 0:
+                    if colorblind_mode:
+                        styling += "color: #0000FF;"
+                    else:
+                        styling += "color: #FF0000;"
+                else:
+                    styling += "color: #F0E6D2;"
+
+                featured_buy_widget.setText(to_purchase)
+                featured_buy_widget.setStyleSheet(styling)
+                featured_buy_widget.show()
+            elif window_state == "skins":
+                price = read_number(league_window_offset(652, 523, 652 + 42, 523 + 16))
+                to_purchase = RP_to_purchase(int(userRP), int(price))
+                if float(to_purchase[to_purchase.find(":") + 2:]) > 0:
+                    if colorblind_mode:
+                        styling += "color: #0000FF;"
+                    else:
+                        styling += "color: #FF0000;"
+                else:
+                    styling += "color: #F0E6D2;"
+
+                skin_buy_widget.setText(to_purchase)
+                skin_buy_widget.setStyleSheet(styling)
+                skin_buy_widget.show()
+
+            window_state_save = window_state
+            window_state = "buy"
+
+def buy_button_collision(x, y):
+    if window_state == 'featured':
+        for i in range(2):
+            if check_collision_rect(x, y, 634 + (i * 200), 149, 634 + 190 + (i * 200), 149 + 190):
+                return True
+            if check_collision_rect(x, y, 634 + (i * 200), 349, 634 + 190 + (i * 200), 349 + 190):
+                return True
+    elif window_state == 'skins':
+        for i in range(4):
+            if check_collision_rect(x, y, 234 + (i * 200), 149, 234 + 190 + (i * 200), 149 + 190):
+                return True
+            if check_collision_rect(x, y, 234 + (i * 200), 349, 234 + 190 + (i * 200), 349 + 190):
+                return True
+
+    return False
 
 def clear_layout(layout):
     global poss
@@ -380,6 +475,24 @@ def load_window(mywindow, layout, shop_prices):
     settings_button = QtWidgets.QPushButton("Settings", mywindow)
     settings_button.clicked.connect(mywindow.openSettings)
     layout.addWidget(settings_button)
+
+    global skin_buy_widget
+    global featured_buy_widget
+    skin_buy_widget = QtWidgets.QLabel("SKIN HERE", mywindow)
+    layout.addWidget(skin_buy_widget)
+    skin_buy_widget.move(570, 510)
+
+    skin_buy_widget.setStyleSheet(
+        "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold; width: 140px; height: 41px;")
+
+    featured_buy_widget = QtWidgets.QLabel("FEAT HERE", mywindow)
+    layout.addWidget(featured_buy_widget)
+    featured_buy_widget.move(318, 469)
+    featured_buy_widget.setStyleSheet(
+        "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold; text-align: center; width: 140px; height: 41px;")
+
+    skin_buy_widget.hide()
+    featured_buy_widget.hide()
 
     mywindow.setLayout(layout)
     # mywindow.update()
@@ -451,6 +564,16 @@ def state_change():
             main_widgets[5].show()
             main_widgets[6].show()
             main_widgets[7].show()
+
+        case "buy":
+            main_widgets[0].hide()
+            main_widgets[1].hide()
+            main_widgets[2].hide()
+            main_widgets[3].hide()
+            main_widgets[4].hide()
+            main_widgets[5].hide()
+            main_widgets[6].hide()
+            main_widgets[7].hide()
 
 def poll():
     global last_window_state
