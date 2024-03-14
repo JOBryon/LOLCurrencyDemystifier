@@ -119,7 +119,8 @@ def read_number(rect):
     screenshot = ImageOps.grayscale(screenshot)
     # screenshot.show()
     # screenshot.save("screenshot.png")
-    text = pytesseract.image_to_string(screenshot, config="--psm 7 -c tessedit_char_whitelist=0123456789.")
+    # -c tessedit_char_whitelist=0123456789.
+    text = pytesseract.image_to_string(screenshot, config="--oem 3 --psm 7")
     if text == '':
         return 0
     try:
@@ -214,6 +215,7 @@ class MainWindow(QMainWindow):
         
         # stores settings window
         self.settings = SettingsWindow()
+        self.buy_window = None
 
         # sets the window to cover RP
         rect = get_window_rect(league_window_name)
@@ -225,6 +227,10 @@ class MainWindow(QMainWindow):
     def openSettings(self):
         self.settings.show()
 
+    def buyWindow(self):
+        self.buy_window = BuyWindow()
+        self.buy_window.show()
+
 
 class NoLeagueWindow(QtWidgets.QWidget):
     def __init__(self):
@@ -235,9 +241,32 @@ class NoLeagueWindow(QtWidgets.QWidget):
         self.currency_label = QtWidgets.QLabel("Please open League of Legends before running Currency Demystifier!", self)
         layout.addWidget(self.currency_label)
 
-        self.close = QtWidgets.QPushButton("Close", self)
-        self.close.clicked.connect(app.quit)
-        layout.addWidget(self.close)
+        self.close_button = QtWidgets.QPushButton("Close", self)
+        self.close_button.clicked.connect(app.quit)
+        layout.addWidget(self.close_button)
+
+        self.setLayout(layout)
+
+
+class BuyWindow(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Currency Demystifier")
+        layout = QtWidgets.QVBoxLayout()
+
+        self.currency_label = QtWidgets.QLabel("Are you sure you want to spend real money on this item?", self)
+        layout.addWidget(self.currency_label)
+
+        sub_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(sub_layout)
+
+        self.yes = QtWidgets.QPushButton("Yes", self)
+        self.yes.clicked.connect(self.close)
+        sub_layout.addWidget(self.yes)
+
+        self.no = QtWidgets.QPushButton("No", self)
+        self.no.clicked.connect(self.close)
+        sub_layout.addWidget(self.no)
 
         self.setLayout(layout)
 
@@ -246,14 +275,6 @@ class SettingsWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Currency Demystifyer Settings")
-        # self.setWindowFlags(
-        #     QtCore.Qt.WindowStaysOnTopHint |
-        #     QtCore.Qt.FramelessWindowHint |
-        #     QtCore.Qt.X11BypassWindowManagerHint
-        # )
-        # self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
-        # rect = get_window_rect(league_window_name)
-        # self.setGeometry(rect[0], rect[1], 300, 400)
 
         layout = QtWidgets.QVBoxLayout()
         
@@ -391,7 +412,7 @@ def on_click(x, y, button, pressed):
                     styling += "color: #F0E6D2;"
 
                 featured_buy_widget.setText(to_purchase)
-                featured_buy_widget.setStyleSheet(styling)
+                featured_buy_widget.setStyleSheet(styling)               
                 featured_buy_widget.show()
             elif window_state == "skins":
                 price = read_number(league_window_offset(652, 523, 652 + 42, 523 + 16))
@@ -478,14 +499,16 @@ def load_window(mywindow, layout, shop_prices):
 
     global skin_buy_widget
     global featured_buy_widget
-    skin_buy_widget = QtWidgets.QLabel("SKIN HERE", mywindow)
+    skin_buy_widget = QtWidgets.QPushButton("SKIN HERE", mywindow)
+    skin_buy_widget.clicked.connect(mywindow.buyWindow)
     layout.addWidget(skin_buy_widget)
     skin_buy_widget.move(570, 510)
 
     skin_buy_widget.setStyleSheet(
         "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold; width: 140px; height: 41px;")
 
-    featured_buy_widget = QtWidgets.QLabel("FEAT HERE", mywindow)
+    featured_buy_widget = QtWidgets.QPushButton("FEAT HERE", mywindow)
+    featured_buy_widget.clicked.connect(mywindow.buyWindow)
     layout.addWidget(featured_buy_widget)
     featured_buy_widget.move(318, 469)
     featured_buy_widget.setStyleSheet(
@@ -516,11 +539,12 @@ def update_labels(loc_offset, width):
         end = 7
 
     for i in range(start, end + 1):
-
-        if i % 2 == 0:
-            price = read_number(league_window_offset(loc_offset + (200 * i), 316, loc_offset + w + (200 * i), 316 + l))
+        
+        i_mod = i % 2
+        if i_mod == 0:
+            price = read_number(league_window_offset(loc_offset + (200 * i_mod), 316, loc_offset + w + (200 * i_mod), 316 + l))
         else:
-            price = read_number(league_window_offset(loc_offset + (200 * i), 516, loc_offset + w + (200 * i), 516 + l))
+            price = read_number(league_window_offset(loc_offset + (200 * i_mod), 516, loc_offset + w + (200 * i_mod), 516 + l))
 
         styling = "background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold;"
 
