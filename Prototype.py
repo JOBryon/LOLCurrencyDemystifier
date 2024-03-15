@@ -399,6 +399,7 @@ def on_click(x, y, button, pressed):
             #         main_widgets[i].setStyleSheet(styling)
 
             styling = "background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold; width: 140px; height: 41px;"
+            time.sleep(.5)
 
             if window_state == "featured":
                 price = read_number(league_window_offset(372, 477, 372 + 41, 477 + 17))
