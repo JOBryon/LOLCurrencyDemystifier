@@ -35,6 +35,9 @@ custom_symbol = "$"
 
 currency_list = {}
 
+id = 0
+families = None
+
 # This list was written with the assumption that no single item will cost more than 4500 RP.    
 # First RP then price in USD with no tax.
 usd_RP = [[575, 4.99], [1380, 10.99], [2800, 21.99], [4500, 34.99]]
@@ -381,50 +384,50 @@ def on_click(x, y, button, pressed):
             print("BUY BUTTON COLLIDE")
             skin_buy_widget.hide()
             featured_buy_widget.hide()
-
-
-            #         styling = "background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold;"
-            #
-            #         to_purchase = RP_to_purchase(int(userRP),int(price))
-            #
-            #
-            #         if float(to_purchase[to_purchase.find(":") + 2:]) > 0:
-            #             if colorblind_mode:
-            #                 styling += "color: #0000FF;"
-            #             else:
-            #                 styling += "color: #FF0000;"
-            #         else:
-            #             styling += "color: #F0E6D2;"
-            #         main_widgets[i].setText(to_purchase)
-            #         main_widgets[i].setStyleSheet(styling)
-
-            styling = "background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold; width: 140px; height: 41px;"
+            
             time.sleep(.5)
 
             if window_state == "featured":
                 price = read_number(league_window_offset(372, 477, 372 + 41, 477 + 17))
                 to_purchase = RP_to_purchase(int(userRP), int(price))
+                styling = "background-color: #010710; font-weight: bold; text-align: center; min-width: 140px; min-height: 41px; border: 2px solid #F0E6D2;"
                 if float(to_purchase[to_purchase.find(":") + 2:]) > 0:
                     if colorblind_mode:
-                        styling += "color: #0000FF;"
+                        styling += "color: #00AEFF;"
                     else:
                         styling += "color: #FF0000;"
                 else:
                     styling += "color: #F0E6D2;"
+                
+                if dyslexic_mode:
+                    styling += "font-size: 11px;"
+                    featured_buy_widget.setFont(QtGui.QFont(dyslexic_families[0], 10))
+                else:
+                    styling += "font-size: 14px;"
+                    featured_buy_widget.setFont(QtGui.QFont(font_families[0], 14))
 
                 featured_buy_widget.setText(to_purchase)
                 featured_buy_widget.setStyleSheet(styling)               
                 featured_buy_widget.show()
+            
             elif window_state == "skins":
                 price = read_number(league_window_offset(652, 523, 652 + 42, 523 + 16))
                 to_purchase = RP_to_purchase(int(userRP), int(price))
+                styling = "background-color: #010710; font-weight: bold; text-align: center; min-width: 140px; min-height: 41px; border: 2px solid #F0E6D2;"
                 if float(to_purchase[to_purchase.find(":") + 2:]) > 0:
                     if colorblind_mode:
-                        styling += "color: #0000FF;"
+                        styling += "color: #00AEFF;"
                     else:
                         styling += "color: #FF0000;"
                 else:
                     styling += "color: #F0E6D2;"
+                
+                if dyslexic_mode:
+                    styling += "font-size: 11px;"
+                    skin_buy_widget.setFont(QtGui.QFont(dyslexic_families[0], 10))
+                else:
+                    styling += "font-size: 14px;"
+                    skin_buy_widget.setFont(QtGui.QFont(font_families[0], 14))
 
                 skin_buy_widget.setText(to_purchase)
                 skin_buy_widget.setStyleSheet(styling)
@@ -458,7 +461,6 @@ def clear_layout(layout):
 
 
 def on_scroll(x, y, dx, dy):
-    # print(x, y, dx, dy)
     pass
 
 def start_listener():
@@ -474,24 +476,24 @@ def load_window(mywindow, layout, shop_prices):
     rp = get_RP()
     label = QtWidgets.QLabel(convert_RP_to(int(rp)), mywindow)
     
-    # TODO: add an if statement here that hinges on colorblind_mode and dyslexic_mode to change styling for different modes
-    label.setStyleSheet(
-        "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 5px; font-size: 14px; font-weight: bold; min-width: 150px")
+    styling = "color: #F0E6D2; background-color: #010710; padding-left: 5px; font-weight: bold; min-height: 28px; min-width: 120px; border: 1px solid #F0E6D2; border-radius: 15px;"
+    if dyslexic_mode:
+        styling += "font-size: 11px;"
+        label.setFont(QtGui.QFont(dyslexic_families[0], 10))
+    else:
+        styling += "font-size: 16px;"
+        label.setFont(QtGui.QFont(font_families[0], 16))
     
-    
+    label.setStyleSheet(styling)
     layout.addWidget(label)
-    label.move(905, 16)
-    #label1 = QtWidgets.QLabel("0", mywindow)
+    label.move(903, 16)
+    
     y = 0
     for i in shop_prices:
         holder_widget = QtWidgets.QLabel(RP_to_purchase(int(rp),int(i)), mywindow)
         layout.addWidget(holder_widget)
-        holder_widget.move(poss[y][0], poss[y][1])
-        main_widgets.append(holder_widget)
-        # TODO: add an if statement here that hinges on colorblind_mode and dyslexic_mode to change styling for different modes
-        holder_widget.setStyleSheet(
-            "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold;")
-        
+        holder_widget.move(poss[y][0] - 10, poss[y][1] - 3)
+        main_widgets.append(holder_widget)        
         y += 1
 
     settings_button = QtWidgets.QPushButton("Settings", mywindow)
@@ -505,15 +507,10 @@ def load_window(mywindow, layout, shop_prices):
     layout.addWidget(skin_buy_widget)
     skin_buy_widget.move(570, 510)
 
-    skin_buy_widget.setStyleSheet(
-        "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold; width: 140px; height: 41px;")
-
     featured_buy_widget = QtWidgets.QPushButton("FEAT HERE", mywindow)
     featured_buy_widget.clicked.connect(mywindow.buyWindow)
     layout.addWidget(featured_buy_widget)
     featured_buy_widget.move(318, 469)
-    featured_buy_widget.setStyleSheet(
-        "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold; text-align: center; width: 140px; height: 41px;")
 
     skin_buy_widget.hide()
     featured_buy_widget.hide()
@@ -546,20 +543,26 @@ def update_labels(loc_offset, width):
             price = read_number(league_window_offset(loc_offset + (200 * i_mod), 316, loc_offset + w + (200 * i_mod), 316 + l))
         else:
             price = read_number(league_window_offset(loc_offset + (200 * i_mod), 516, loc_offset + w + (200 * i_mod), 516 + l))
-
-        styling = "background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold;"
-
+        
         to_purchase = RP_to_purchase(int(userRP),int(price))
-
+        main_widgets[i].setText(to_purchase)
+        
+        styling = "background-color: #010710; font-weight: bold; text-align: center; min-width: 60px; max-height: 20px; padding-left: 20px; border-radius: 5px;"
+        if dyslexic_mode:
+            styling += "font-size: 11px;"
+            main_widgets[i].setFont(QtGui.QFont(dyslexic_families[0], 10))
+        else:
+            styling += "font-size: 14px;"
+            main_widgets[i].setFont(QtGui.QFont(font_families[0], 14))
 
         if float(to_purchase[to_purchase.find(":") + 2:]) > 0:
             if colorblind_mode:
-                styling += "color: #0000FF;"
+                styling += "color: #00AEFF;"
             else:
                 styling += "color: #FF0000;"
         else:
             styling += "color: #F0E6D2;"
-        main_widgets[i].setText(to_purchase)
+        
         main_widgets[i].setStyleSheet(styling)
 
 
@@ -603,13 +606,6 @@ def state_change():
 def poll():
     global last_window_state
     global main_widgets
-    #
-    # test_wd.setText(str(random.randint(1,50)))
-    #
-    # if test_wd.isHidden():
-    #     test_wd.show()
-    # else:
-    #     test_wd.hide()
 
     if window_state != last_window_state:
         print ("STATE CHANGE")
@@ -623,16 +619,12 @@ def poll():
         main_widgets[6].hide()
         main_widgets[7].hide()
         QTimer.singleShot(1000, state_change)
-        # # clear_layout(layout)
-        # load_window(mywindow, layout, shop_prices)
-        # print(layout.count())
 
 
 def quit_program():
     print("QUIT")
     mywindow.close()
     app.quit()
-    exit(0)
 
 
 
@@ -645,6 +637,14 @@ if __name__ == '__main__':
         error_window.show()
         app.exec_()
         exit(0)
+    
+    dyslexic = QtGui.QFontDatabase.addApplicationFont("OpenDyslexic3-Bold.ttf")
+    if dyslexic < 0: print("error loading OpenDyslexic3-Bold.ttf")
+    dyslexic_families = QtGui.QFontDatabase.applicationFontFamilies(dyslexic)
+
+    font = QtGui.QFontDatabase.addApplicationFont("BeaufortforLOL-Bold.ttf")
+    if font < 0: print("error loading BeaufortforLOL-Bold.ttf")
+    font_families = QtGui.QFontDatabase.applicationFontFamilies(font)
 
     listener_thread = threading.Thread(target=start_listener)
     listener_thread.start()
@@ -666,12 +666,6 @@ if __name__ == '__main__':
     close_button.clicked.connect(quit_program)
     close_button.move(1200, 0)
 
-    # test_wd = QtWidgets.QLabel("ASWD", mywindow)
-    # layout.addWidget(test_wd)
-    # test_wd.move(500, 200)
-    # test_wd.setStyleSheet(
-    #     "color: #F0E6D2; background-color: #010710; padding-left: 2px; padding-bottom: 0px; font-size: 14px; font-weight: bold;")
-
     main_widgets[0].hide()
     main_widgets[1].hide()
     main_widgets[2].hide()
@@ -686,4 +680,4 @@ if __name__ == '__main__':
     timer.timeout.connect(poll)
     timer.start(200)
 
-    app.exec_()
+    sys.exit(app.exec_())
